@@ -1,6 +1,14 @@
 django-storages CHANGELOG
 =========================
 
+1.9.2 (2020-03-02)
+******************
+
+FTPS
+--
+
+- Recognize 'ftps' scheme to indicate FTP over TLS
+
 1.9.1 (2020-02-03)
 ******************
 
