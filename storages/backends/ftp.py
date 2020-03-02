@@ -59,7 +59,7 @@ class FTPStorage(Storage):
         splitted_url = urlparse.urlparse(location)
         config = {}
 
-        if splitted_url.scheme not in ('ftp', 'aftp'):
+        if splitted_url.scheme not in ('ftp', 'aftp', 'ftps'):
             raise ImproperlyConfigured(
                 'FTPStorage works only with FTP protocol!'
             )
@@ -70,6 +70,12 @@ class FTPStorage(Storage):
             config['active'] = True
         else:
             config['active'] = False
+
+        if splitted_url.scheme == 'ftps':
+            config['tls'] = True
+        else:
+            config['tls'] = False
+
         config['path'] = splitted_url.path
         config['host'] = splitted_url.hostname
         config['user'] = splitted_url.username
@@ -90,11 +96,15 @@ class FTPStorage(Storage):
         if self._connection is None:
             ftp = ftplib.FTP()
             ftp.encoding = self.encoding
+            if self._config['tls']:
+                ftp = ftplib.FTP_TLS()
             try:
                 ftp.connect(self._config['host'], self._config['port'])
                 ftp.login(self._config['user'], self._config['passwd'])
                 if self._config['active']:
                     ftp.set_pasv(False)
+                if self._config['tls']:
+                    ftp.prot_p()
                 if self._config['path'] != '':
                     ftp.cwd(self._config['path'])
                 self._connection = ftp
