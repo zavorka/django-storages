@@ -5,9 +5,10 @@ Usage
 *****
 
 There is only one supported backend for interacting with Amazon's S3,
-``S3Boto3Storage``, based on the boto3 library.
+``S3Boto3Storage``, based on the boto3 library. The backend based on the boto
+library has now been officially deprecated and is due to be removed shortly.
 
-The legacy ``S3BotoStorage`` backend was removed in version 1.9. To continue getting new features you must upgrade
+All current users of the legacy ``S3BotoStorage`` backend are encouraged to migrate
 to the ``S3Boto3Storage`` backend by following the :ref:`migration instructions <migrating-boto-to-boto3>`.
 
 Settings
@@ -60,6 +61,16 @@ To allow ``django-admin.py`` collectstatic to automatically put your static file
     If set to ``True`` the bucket specified in ``AWS_STORAGE_BUCKET_NAME`` is automatically created.
 
 .. deprecated:: 1.9
+``AWS_HEADERS`` (optional - boto only, for boto3 see ``AWS_S3_OBJECT_PARAMETERS``)
+    If you'd like to set headers sent with each file of the storage::
+
+        AWS_HEADERS = {
+            'Expires': 'Thu, 15 Apr 2010 20:00:00 GMT',
+            'Cache-Control': 'max-age=86400',
+        }
+
+``AWS_S3_OBJECT_PARAMETERS`` (optional - boto3 only)
+  Use this to set object parameters on your object (such as CacheControl)::
 
    The ability to automatically create a bucket will be removed in version 1.10. The permissions needed
    to do so are incongruent with the requirements of the rest of this library. Either create it yourself
@@ -95,6 +106,12 @@ To allow ``django-admin.py`` collectstatic to automatically put your static file
 ``AWS_S3_FILE_OVERWRITE`` (optional: default is ``True``)
     By default files with the same name will overwrite each other. Set this to ``False`` to have extra characters appended.
 
+``AWS_S3_HOST`` (optional - boto only, default is ``s3.amazonaws.com``)
+
+  To ensure you use `AWS Signature Version 4`_ it is recommended to set this to the host of your bucket. See the
+  `S3 region list`_ to figure out the appropriate endpoint for your bucket. Also be sure to add
+  ``S3_USE_SIGV4 = True`` to settings.py
+
 .. note::
 
     The signature versions are not backwards compatible so be careful about url endpoints if making this change
@@ -115,16 +132,16 @@ To allow ``django-admin.py`` collectstatic to automatically put your static file
 ``AWS_S3_USE_SSL`` (optional: default is ``True``)
     Whether or not to use SSL when connecting to S3.
 
-``AWS_S3_VERIFY`` (optional: default is ``None``)
+``AWS_S3_VERIFY`` (optional: default is ``None`` - boto3 only)
     Whether or not to verify the connection to S3. Can be set to False to not verify certificates or a path to a CA cert bundle.
 
-``AWS_S3_ENDPOINT_URL`` (optional: default is ``None``)
+``AWS_S3_ENDPOINT_URL`` (optional: default is ``None``, boto3 only)
     Custom S3 URL to use when connecting to S3, including scheme. Overrides ``AWS_S3_REGION_NAME`` and ``AWS_S3_USE_SSL``. To avoid ``AuthorizationQueryParametersError`` error, ``AWS_S3_REGION_NAME`` should also be set.
 
-``AWS_S3_ADDRESSING_STYLE`` (optional: default is ``None``)
+``AWS_S3_ADDRESSING_STYLE`` (default is ``None``, boto3 only)
     Possible values ``virtual`` and ``path``.
 
-``AWS_S3_PROXIES`` (optional: default is ``None``)
+``AWS_S3_PROXIES`` (boto3 only, default ``None``)
   A dictionary of proxy servers to use by protocol or endpoint, e.g.:
   {'http': 'foo.bar:3128', 'http://hostname': 'foo.bar:4012'}.
 
@@ -132,7 +149,10 @@ To allow ``django-admin.py`` collectstatic to automatically put your static file
 
   The minimum required version of ``boto3`` to use this feature is 1.4.4
 
-``AWS_S3_SIGNATURE_VERSION`` (optional)
+``AWS_S3_CALLING_FORMAT`` (optional: default is ``SubdomainCallingFormat()``)
+    Defines the S3 calling format to use to connect to the static bucket.
+
+``AWS_S3_SIGNATURE_VERSION`` (optional - boto3 only)
 
   As of ``boto3`` version 1.4.4 the default signature version is ``s3v4``.
 
@@ -170,7 +190,7 @@ The following adjustments to settings are required:
 - If you persist urls and rely on the output to use the signature version of ``s3`` set ``AWS_S3_SIGNATURE_VERSION`` to ``s3``
 - Update ``DEFAULT_FILE_STORAGE`` and/or ``STATICFILES_STORAGE`` to ``storages.backends.s3boto3.S3Boto3Storage``
 
-Additionally, you must install ``boto3``.  In order to use
+Additionally, you must install ``boto3`` (``boto`` is no longer required).  In order to use
 all currently supported features, ``1.4.4`` is the minimum required version although we
 always recommend the most recent.
 
